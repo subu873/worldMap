@@ -1,65 +1,101 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import React, {Fragment, useState} from "react";
+import styles from "../styles/Home.module.css"
+import {ComposableMap, Geographies, Geography} from "react-simple-maps";
+import Loader from "react-loader-spinner";
+import {rounded} from "../utils/helper";
+import {useRouter} from "next/router";
 
-export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+const geoUrl =
+    "https://raw.githubusercontent.com/zcreativelabs/react-simple-maps/master/topojson-maps/world-110m.json";
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+const WorldMap = () => {
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+    const router = useRouter()
+    const [content, setContent] = useState("");
+    const [countryName, setCountryName] = useState("")
+    const [countryFullName, setCountryFullName] = useState("")
+    const [population, setPopulation] = useState('')
+    const [loader, setLoader] = useState(false)
 
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
 
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+    return (
+        <div className="container">
+            <div className="col-md-12">
+
+                <div className="tooltip-ex">
+                    <span className="tooltip-ex-text tooltip-ex-top">
+                        {!loader &&
+                        <Fragment>
+                            <div className="col-md-12 text-center">
+                                <img
+                                    src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${countryName}.svg`}
+                                    className={styles.flagIcon} alt={countryName}/>
+                                <p>{countryFullName}</p>
+                                <p>Population - {rounded(population)}</p>
+                            </div>
+                        </Fragment>
+                        }
+
+                        {loader &&
+                        <Loader color={"#fff"} type="Oval" width={45} height={45}/>
+                        }
+                    </span>
+                </div>
+
+                <ComposableMap data-tip="" projectionConfig={{scale: 200}}>
+                    <Geographies geography={geoUrl}>
+                        {({geographies}) =>
+                            geographies.map(geo => (
+                                <Geography
+                                    key={geo.rsmKey}
+                                    geography={geo}
+                                    onMouseEnter={() => {
+                                        const {NAME, POP_EST, GDP_YEAR, ISO_A2} = geo.properties;
+                                        console.log('geo', geo.properties)
+                                        setCountryName(ISO_A2)
+                                        setCountryFullName(NAME)
+                                        setPopulation(POP_EST)
+                                        setLoader(false)
+                                    }}
+                                    onMouseLeave={() => {
+                                        setLoader(true)
+                                        setCountryName('')
+                                        setCountryFullName('')
+                                        setPopulation('')
+                                    }}
+
+                                    onClick={() => {
+                                        console.log('geo ', geo)
+                                        router.push('/country/detail/' + geo.properties.NAME)
+                                    }}
+
+                                    style={{
+                                        default: {
+                                            fill: "#D6D6DA",
+                                            outline: "none"
+                                        },
+                                        hover: {
+                                            fill: "#F53",
+                                            outline: "none"
+                                        },
+                                        pressed: {
+                                            fill: "#E42",
+                                            outline: "none"
+                                        }
+                                    }}
+                                />
+                            ))
+                        }
+                    </Geographies>
+
+                </ComposableMap>
+
+
+            </div>
         </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
-  )
+    );
 }
+
+export default WorldMap
