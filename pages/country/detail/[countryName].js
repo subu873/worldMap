@@ -1,7 +1,8 @@
-import {Fragment, useEffect, useState} from "react";
+import React, {Fragment, useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import axios from "axios"
 import {RAPID_API_KEY} from "../../../utils/helper";
+import Loader from "react-loader-spinner";
 
 const CountryDetail = () => {
 
@@ -9,8 +10,10 @@ const CountryDetail = () => {
 
     const [countryName, setCountryName] = useState('')
     const [data, setData] = useState({})
+    const [loader, setLoader] = useState(false)
 
     const getCountryFullInfo = (countryName) => {
+        setLoader(true)
         const options = {
             headers: {
                 "x-rapidapi-key": RAPID_API_KEY,
@@ -28,6 +31,8 @@ const CountryDetail = () => {
             }).catch((err) => {
             console.log('error', err)
             setData({})
+        }).finally(() => {
+            setLoader(false)
         })
     }
 
@@ -44,35 +49,57 @@ const CountryDetail = () => {
         <Fragment>
 
 
-            <div className="container">
-                <div className="col-md-12 text-center mt-5">
-                    {Object.keys(data).length > 0 &&
-                    <Fragment>
-                        <img src={data.flag_img} className="flagIcon mb-3"/>
-                        <h1>
-                            {data.name}
-                        </h1>
-                        <h6>
-                            Capital - {data.capital}
-                        </h6>
+            <section className="detailPage">
+                <div className="container">
+                    <div className="col-md-12 text-center mt-5">
 
-                        <h6>
-                            Currency - {data.currency}
-                        </h6>
-                        <h6>
-                            Calling Code - {data.calling_code}
-                        </h6>
-                        <h6>
-                            Prime Minister - {data.prime_minister}
-                        </h6>
-                        <h6>
-                            President - {data.president}
-                        </h6>
+                        <div className="grid">
+                            {!loader && Object.keys(data).length > 0 &&
+                            <Fragment>
+                                <img src={data.flag_img} className="flagIcon mb-3"/>
+                                <h1>
+                                    {data.name}
+                                </h1>
+                                <h6>
+                                    Capital - {data.capital}
+                                </h6>
 
-                    </Fragment>
-                    }
+                                <h6>
+                                    Currency - {data.currency}
+                                </h6>
+                                <h6>
+                                    Calling Code - {data.calling_code}
+                                </h6>
+                                <h6>
+                                    Prime Minister - {data.prime_minister}
+                                </h6>
+                                <h6>
+                                    President - {data.president}
+                                </h6>
+
+                            </Fragment>
+                            }
+
+                            {loader &&
+                            <Loader color={"#333"} type="Oval" width={45} height={45}/>
+                            }
+
+                            {!loader && Object.keys(data).length === 0 &&
+                            <p className="alert alert-danger">
+                                API is not giving proper response
+                            </p>
+                            }
+
+                            <button className="btn btn-warning mt-5">
+                                Edit Basic Info
+                            </button>
+
+                        </div>
+
+                    </div>
                 </div>
-            </div>
+            </section>
+
         </Fragment>
     )
 }

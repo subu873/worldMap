@@ -12,3 +12,7 @@
   align-items: center;
   align-content: center;
 }
+.tooltipText{
+  margin-bottom: 5px;
+  font-size: 15px;
+}

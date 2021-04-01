@@ -2,8 +2,9 @@ import React, {Fragment, useState} from "react";
 import styles from "../styles/Home.module.css"
 import {ComposableMap, Geographies, Geography} from "react-simple-maps";
 import Loader from "react-loader-spinner";
-import {rounded} from "../utils/helper";
+import {RAPID_API_KEY} from "../utils/helper";
 import {useRouter} from "next/router";
+import axios from "axios"
 
 
 const geoUrl =
@@ -18,31 +19,64 @@ const WorldMap = () => {
     const [countryFullName, setCountryFullName] = useState("")
     const [population, setPopulation] = useState('')
     const [loader, setLoader] = useState(false)
+    const [data, setData] = useState({})
+
+
+    const getCountryFullInfo = (countryName) => {
+        setLoader(true)
+        const options = {
+            headers: {
+                "x-rapidapi-key": RAPID_API_KEY,
+                "x-rapidapi-host": "wikiapi.p.rapidapi.com",
+                "useQueryString": true
+            }
+        };
+
+        const API_URL = `https://wikiapi.p.rapidapi.com/api/v1/wiki/geography/country/info/${countryName}?lan=en`
+
+        axios.get(API_URL, options)
+            .then((res) => {
+                console.log('res', res)
+                setData(res.data)
+            }).catch((err) => {
+            console.log('error', err)
+            setData({})
+        }).finally(() => {
+            setLoader(false)
+        })
+    }
 
 
     return (
         <div className="container">
             <div className="col-md-12">
-
+                {!loader && Object.keys(data).length > 0 &&
                 <div className="tooltip-ex">
                     <span className="tooltip-ex-text tooltip-ex-top">
-                        {!loader &&
                         <Fragment>
                             <div className="col-md-12 text-center">
                                 <img
-                                    src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${countryName}.svg`}
-                                    className={styles.flagIcon} alt={countryName}/>
-                                <p>{countryFullName}</p>
-                                <p>Population - {rounded(population)}</p>
+                                    src={data.flag_img}
+                                    className={styles.flagIcon} alt={data.name}/>
+                                <p className={styles.tooltipText}>{data.name}</p>
+                                <p className={styles.tooltipText}> Capital - {data.capital}</p>
+                                <p className={styles.tooltipText}>Dialing Code - {data.calling_code}</p>
+                                <p className={styles.tooltipText}> Currency - {data.currency}</p>
+                                <p className={styles.tooltipText}>Population - {data.population_estimate}</p>
+                                <p className={styles.tooltipText}>Area - {data.area}</p>
                             </div>
                         </Fragment>
-                        }
-
-                        {loader &&
-                        <Loader color={"#fff"} type="Oval" width={45} height={45}/>
-                        }
                     </span>
                 </div>
+                }
+
+                {loader &&
+                <div className="tooltip-ex">
+                    <span className="tooltip-ex-text tooltip-ex-top">
+                        <Loader color={"#fff"} type="Oval" width={45} height={45}/>
+                    </span>
+                </div>
+                }
 
                 <ComposableMap data-tip="" projectionConfig={{scale: 200}}>
                     <Geographies geography={geoUrl}>
@@ -54,10 +88,7 @@ const WorldMap = () => {
                                     onMouseEnter={() => {
                                         const {NAME, POP_EST, GDP_YEAR, ISO_A2} = geo.properties;
                                         console.log('geo', geo.properties)
-                                        setCountryName(ISO_A2)
-                                        setCountryFullName(NAME)
-                                        setPopulation(POP_EST)
-                                        setLoader(false)
+                                        getCountryFullInfo(NAME.toLowerCase())
                                     }}
                                     onMouseLeave={() => {
                                         setLoader(true)
@@ -68,7 +99,7 @@ const WorldMap = () => {
 
                                     onClick={() => {
                                         console.log('geo ', geo)
-                                        router.push('/country/detail/' + geo.properties.NAME)
+                                        router.push('/country/detail/' + geo.properties.NAME.toLowerCase())
                                     }}
 
                                     style={{
