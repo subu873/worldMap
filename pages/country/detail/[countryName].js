@@ -4,6 +4,8 @@ import axios from "axios"
 import {RAPID_API_KEY} from "../../../utils/helper";
 import Loader from "react-loader-spinner";
 
+const cache = {};
+
 const CountryDetail = () => {
 
     const router = useRouter()
@@ -14,26 +16,40 @@ const CountryDetail = () => {
 
     const getCountryFullInfo = (countryName) => {
         setLoader(true)
-        const options = {
-            headers: {
-                "x-rapidapi-key": RAPID_API_KEY,
-                "x-rapidapi-host": "wikiapi.p.rapidapi.com",
-                "useQueryString": true
-            }
-        };
 
-        const API_URL = `https://wikiapi.p.rapidapi.com/api/v1/wiki/geography/country/info/${countryName}?lan=en`
-
-        axios.get(API_URL, options)
-            .then((res) => {
-                console.log('res', res)
-                setData(res.data)
-            }).catch((err) => {
-            console.log('error', err)
-            setData({})
-        }).finally(() => {
+        if (cache[countryName]) {
+            const cachedData = cache[countryName];
+            console.log('cache data', cache)
+            setData(cachedData);
             setLoader(false)
-        })
+        } else {
+            
+            const options = {
+                headers: {
+                    "x-rapidapi-key": RAPID_API_KEY,
+                    "x-rapidapi-host": "wikiapi.p.rapidapi.com",
+                    "useQueryString": true
+                }
+            };
+
+            const API_URL = `https://wikiapi.p.rapidapi.com/api/v1/wiki/geography/country/info/${countryName}?lan=en`
+
+            axios.get(API_URL, options)
+                .then((res) => {
+                    console.log('res', res)
+                    setData(res.data)
+                }).catch((err) => {
+                console.log('error', err)
+                setData({})
+            }).finally(() => {
+                setLoader(false)
+            })
+        }
+    }
+
+    const handleEditInfo = () => {
+        const info = JSON.stringify(data)
+        router.push('/editInfo/' + countryName + '?info=' + info, '/editInfo/' + countryName, {shallow: true})
     }
 
     useEffect(() => {
@@ -90,7 +106,7 @@ const CountryDetail = () => {
                             </p>
                             }
 
-                            <button className="btn btn-warning mt-5">
+                            <button className="btn btn-warning mt-5" onClick={handleEditInfo}>
                                 Edit Basic Info
                             </button>
 
