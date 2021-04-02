@@ -10,6 +10,8 @@ import axios from "axios"
 const geoUrl =
     "https://raw.githubusercontent.com/zcreativelabs/react-simple-maps/master/topojson-maps/world-110m.json";
 
+const cache = {};
+
 
 const WorldMap = () => {
 
@@ -24,26 +26,38 @@ const WorldMap = () => {
 
     const getCountryFullInfo = (countryName) => {
         setLoader(true)
-        const options = {
-            headers: {
-                "x-rapidapi-key": RAPID_API_KEY,
-                "x-rapidapi-host": "wikiapi.p.rapidapi.com",
-                "useQueryString": true
-            }
-        };
 
-        const API_URL = `https://wikiapi.p.rapidapi.com/api/v1/wiki/geography/country/info/${countryName}?lan=en`
-
-        axios.get(API_URL, options)
-            .then((res) => {
-                console.log('res', res)
-                setData(res.data)
-            }).catch((err) => {
-            console.log('error', err)
-            setData({})
-        }).finally(() => {
+        // checking cache if country info exists
+        if (cache[countryName]) {
+            const cachedData = cache[countryName];
+            console.log('cache data', cache)
+            setData(cachedData);
             setLoader(false)
-        })
+        } else {
+
+            // if country info is not present in cached data then make api calls
+            const options = {
+                headers: {
+                    "x-rapidapi-key": RAPID_API_KEY,
+                    "x-rapidapi-host": "wikiapi.p.rapidapi.com",
+                    "useQueryString": true
+                }
+            };
+
+            const API_URL = `https://wikiapi.p.rapidapi.com/api/v1/wiki/geography/country/info/${countryName}?lan=en`
+
+            axios.get(API_URL, options)
+                .then((res) => {
+                    console.log('res', res)
+                    setData(res.data)
+                    cache[countryName] = res.data;
+                }).catch((err) => {
+                console.log('error', err)
+                setData({})
+            }).finally(() => {
+                setLoader(false)
+            })
+        }
     }
 
 
