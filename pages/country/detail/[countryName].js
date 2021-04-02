@@ -4,7 +4,6 @@ import axios from "axios"
 import {RAPID_API_KEY} from "../../../utils/helper";
 import Loader from "react-loader-spinner";
 
-const cache = {};
 
 const CountryDetail = () => {
 
@@ -17,13 +16,14 @@ const CountryDetail = () => {
     const getCountryFullInfo = (countryName) => {
         setLoader(true)
 
-        if (cache[countryName]) {
-            const cachedData = cache[countryName];
-            console.log('cache data', cache)
-            setData(cachedData);
+        console.log('countryName', countryName)
+
+        if (localStorage.getItem(countryName)) {
+            const cachedData = localStorage.getItem(countryName);
+            setData(JSON.parse(cachedData));
             setLoader(false)
         } else {
-            
+
             const options = {
                 headers: {
                     "x-rapidapi-key": RAPID_API_KEY,
@@ -49,7 +49,7 @@ const CountryDetail = () => {
 
     const handleEditInfo = () => {
         const info = JSON.stringify(data)
-        router.push('/editInfo/' + countryName + '?info=' + info, '/editInfo/' + countryName, {shallow: true})
+        router.push('/editInfo/' + countryName + '?name=' + countryName + ' &info=' + info, '/editInfo/' + countryName, {shallow: true})
     }
 
     useEffect(() => {

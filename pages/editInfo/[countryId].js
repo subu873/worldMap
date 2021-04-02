@@ -4,34 +4,41 @@ import * as Yup from "yup";
 import styles from "../../styles/EditInfo.module.css"
 import {useRouter} from "next/router";
 
-
-const cache = {};
-
 const EditInfo = (props) => {
 
     const router = useRouter()
 
+    const [countryName, setCountryName] = useState('')
     const [info, setInfo] = useState({})
 
     const initialValues = {
-        countryName: info.name,
+        name: info.name,
         president: info.president,
-        primeMinister: info.prime_minister,
-        callingCode: info.calling_code,
+        prime_minister: info.prime_minister,
+        calling_code: info.calling_code,
         capital: info.capital
     };
 
     const countryValidationSchema = Yup.object({
-        countryName: Yup.string().required("Country Name is required"),
+        name: Yup.string().required("Country Name is required"),
         president: Yup.string().required("President Name is required"),
-        primeMinister: Yup.string().required("Prime Minister Name is required"),
-        callingCode: Yup.string().required("Calling Code  is required"),
+        prime_minister: Yup.string().required("Prime Minister Name is required"),
+        calling_code: Yup.string().required("Calling Code  is required"),
         capital: Yup.string().required("Capital Name is required"),
     });
 
     const handleSubmit = (values) => {
-        console.log('values', values)
-        cache[info.name] = values;
+        console.log('values', values);
+        console.log('main data', info);
+
+        if (Object.keys(info).length > 0) {
+            const mainInfo = info
+            const localValues = values
+            const saveData = {...mainInfo, ...localValues};
+            console.log('going to save data', saveData)
+
+            localStorage.setItem(countryName.trim(), JSON.stringify(saveData))
+        }
     }
 
     const handleBackClick = () => {
@@ -48,7 +55,10 @@ const EditInfo = (props) => {
                 console.log('fail to parse', router.query.info)
                 setInfo({})
             }
+        }
 
+        if (router.query && router.query.name) {
+            setCountryName(router.query.name)
         }
     }, [router])
 
@@ -70,14 +80,14 @@ const EditInfo = (props) => {
                             <Form>
                                 <div className="row mt-5">
                                     <div className="col-md-6 mt-2">
-                                        <label htmlFor="password" className="customLabel">
+                                        <label htmlFor="name" className="customLabel">
                                             Country Name
                                         </label>
                                         <Field className="form-control customInput"
-                                               name="countryName"
+                                               name="name"
                                                type="text"/>
                                         <p className="text-danger errorMessageModal">
-                                            <ErrorMessage name="countryName"/>
+                                            <ErrorMessage name="name"/>
                                         </p>
                                     </div>
 
@@ -93,26 +103,26 @@ const EditInfo = (props) => {
                                         </p>
                                     </div>
                                     <div className="col-md-6 mt-2">
-                                        <label htmlFor="primeMinister" className="customLabel">
+                                        <label htmlFor="prime_minister" className="customLabel">
                                             primeMinister
                                         </label>
                                         <Field className="form-control customInput"
-                                               name="primeMinister"
+                                               name="prime_minister"
                                                type="text"/>
                                         <p className="text-danger errorMessageModal">
-                                            <ErrorMessage name="primeMinister"/>
+                                            <ErrorMessage name="prime_minister"/>
                                         </p>
                                     </div>
 
                                     <div className="col-md-6 mt-2">
-                                        <label htmlFor="callingCode" className="customLabel">
+                                        <label htmlFor="calling_code" className="customLabel">
                                             callingCode
                                         </label>
                                         <Field className="form-control customInput"
-                                               name="callingCode"
+                                               name="calling_code"
                                                type="text"/>
                                         <p className="text-danger errorMessageModal">
-                                            <ErrorMessage name="callingCode"/>
+                                            <ErrorMessage name="calling_code"/>
                                         </p>
                                     </div>
                                     <div className="col-md-6 mt-2">
